@@ -1,0 +1,29 @@
+cd /sdcard/htdocs/Athamika_livetv && cp index.php index.php.bak_html && php -r '
+$f="index.php"; $s=file_get_contents($f);
+$s=preg_replace("/<\?php.*?\?>/s","",$s,1);
+$s=str_replace("<?= count(\$DATA[\x27channels\x27]) ?> channels · <?= \$DATA[\x27multi_stream\x27] ?? 0 ?> multi-stream · <?= \$DATA[\x27working\x27] ?? 0 ?> working","Loading...",$s);
+$s=str_replace("<?= !\$HAS_DATA ? \x27style=\"display:none\"\x27 : \x27\x27 ?>","",$s);
+$s=preg_replace("/<\?php if \(!\$HAS_DATA\): \?>.*?<\?php endif; \?>/s","",$s);
+$s=str_replace("const CHANNELS = <?= json_encode(\$CHANNELS, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;","let CHANNELS = [];",$s);
+$s=str_replace("if (CHANNELS.length) { initFilters(); render(); }","",$s);
+$inject = "
+const REMOTE_JSON = \"https://raw.githubusercontent.com/sri012/Hellincell/main/channels_data.json\";
+async function loadChannels(){
+  try{
+    const r=await fetch(REMOTE_JSON+\"?_=\"+Date.now(),{cache:\"no-store\"});
+    const data=await r.json();
+    CHANNELS = data.channels || [];
+    const sub=document.querySelector(\".sub\");
+    if(sub) sub.textContent = CHANNELS.length+\" channels · \"+(data.multi_stream||0)+\" multi-stream · \"+(data.working||0)+\" working\";
+    initFilters(); render();
+  }catch(e){
+    const g=document.getElementById(\"grid\");
+    if(g) g.innerHTML=\"<div class=\\\"empty\\\">Failed to load: \"+e.message+\"</div>\";
+  }
+}
+loadChannels();
+";
+$s=str_replace("</script>", $inject."</script>", $s);
+file_put_contents("index.html",$s);
+echo "index.html created\n";
+' && ls -la index.html
