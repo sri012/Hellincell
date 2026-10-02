@@ -1,0 +1,11 @@
+*.bak*
+update.log
+update.lock
+iptv_channels.json
+iptv_logos.json
+iptv_feeds.json
+jiotv.json
+in.m3u
+rows_raw.json
+*_data/
+3502_data/
